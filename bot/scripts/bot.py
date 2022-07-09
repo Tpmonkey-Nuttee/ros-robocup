@@ -38,28 +38,26 @@ from opencv_apps.msg import *
 
 class CustomNode:
     def __init__(self):
-        # self.name = name
-        # self.pub = None
-        
-        # Vision
-        # self.bridge = CvBridge()
-
         rospy.init_node("bot_main")
         
         self.reg_sub = rospy.Subscriber("bot/voice_input", String, self.heard)
         self.speak_pub = rospy.Publisher("bot/speak", String, queue_size = 10)
+        
+        self.nav_sub = rospy.Subscriber("bot/reached", String, self.reached)
+        self.nav_pub = rospy.Publisher("bot/nav", String, queue_size = 10)
 
-        # if topic:
-            # Uncomment to switch between sub and pub.
-
-            # rospy.Subscriber(topic, msg_type, self.call_back)
-            # self.pub = rospy.Publisher(topic, msg_type)       
+    
+    def reached(self, data):
+        print("Reached", data.data)
+    
+    def goto(self, location):
+        self.nav_pub.publish(location)
     
     def heard(self, data):
-        msg = data.data        
+        msg = data.data       
         
-        
-        self.speak(msg)
+        # TODO: 
+        self.speak(msg)        
     
     def speak(self, text):
         self.speak_pub.publish(text)

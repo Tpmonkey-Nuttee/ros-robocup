@@ -13,56 +13,25 @@
 
 import rospy
 from std_msgs.msg import *
-from sound_play.libsoundplay import SoundClient
-# from opencv_apps.msg import *
 
 # Speech
-# import speech_recognition as sr
 from gtts import gTTS
-
-# Vision
-# from cv_bridge import CvBridge, CvBridgeError
-# import cv2
 
 import os
 
+# Disable warning.
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class CustomNode:
     def __init__(self, name, topic = None, msg_type = None):
-        self.name = name
-        self.pub = None
-        
-        # Vision
-        # self.bridge = CvBridge()
-
+        self.name = name    
         rospy.init_node(name)
-        self.client = SoundClient(blocking = True)
-        
-        rospy.sleep(1)
 
-        if topic:
-            # Uncomment to switch between sub and pub.
-
-            rospy.Subscriber(topic, msg_type, self.callback)
-            # self.pub = rospy.Publisher(topic, msg_type)       
-        
+        rospy.Subscriber(topic, msg_type, self.callback)  
     
-    def main(self):
-        # Put stuff here.
-        
-        # ---- Note
-        ### Speech
-        # google_rs(langauge: str = "en-US") -> Optional[str]
-        # speak(text: str) -> None
-        # 
-        ### Vision
-        # take_photo(data: /topic/rgb/image_raw, image_title: str + ".jpg") -> None
-        #
-
-        
+    def main(self):        
         # Put this behind.
         rospy.spin()
 
@@ -70,30 +39,6 @@ class CustomNode:
         print("INFO: ", data)
         
         self.speak(data.data)
-    
-    ### Speech
-    # google_rs(langauge: str = "en-US") -> Optional[str]
-    # speak(text: str) -> None
-    # def google_rs(self, langauge = "en-US"):
-    #     r = sr.Recognizer()
-        
-    #     with sr.Microphone() as source:
-    #         print(">>> Say something!")
-    #         # audio = r.listen(source)
-    #         audio = r.record(source, duration=5)
-            
-    #     # recognize speech using Google Speech Recognition
-    #     result = None
-    #     try:
-    #         print("Recognizing...")
-    #         result = r.recognize_google(audio, langauge = langauge)
-    #         print("SR result: " + result)
-    #     except sr.UnknownValueError:
-    #         print("SR could not understand audio")
-    #     except sr.RequestError as e:
-    #         print("Could not request results from Google Speech Recognition service; {0}".format(e))
-        
-        # return result
 
     def speak(self, text):
         print("Saying", text)
@@ -102,21 +47,6 @@ class CustomNode:
         tts.save("speech.mp3")
         os.system("mpg321 -q speech.mp3")
         os.remove("speech.mp3")
-        # print("saying", text)
-        # self.client.say(text)
-        # print("Done")
-    
-    ### Vision
-    # take_photo(data: /topic/rgb/image_raw, image_title: str + ".jpg") -> None
-    # def take_photo(self, data, image_title):
-    #     try:
-    #         cv_image = self.bridge.imgmsg_to_cv2(data), "bgr8"
-    #     except CvBridgeError as e:
-    #         print(e)
-
-    #     cv2.write(image_title, cv_image)
-    #     print("Saved image as", image_title)
-    
 
 if __name__ == '__main__':
     csNode = CustomNode(
