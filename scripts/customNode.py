@@ -38,8 +38,8 @@ class CustomNode:
         if topic:
             # Uncomment to switch between sub and pub.
 
-            rospy.Subscriber(topic, msg_type, self.call_back)
-            # self.pub = rospy.Publisher(topic, msg_type)       
+            rospy.Subscriber(topic, msg_type, self.callback)
+            # self.pub = rospy.Publisher(topic, msg_type, queue_size = 10)       
         
     
     def main(self):
