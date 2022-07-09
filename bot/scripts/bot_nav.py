@@ -106,7 +106,7 @@ class NavToPoint:
                     rospy.sleep(2)
                     
                     # send back to main.
-                    self.pub.publish("reached")
+                    self.pub.publish(location)
 
                 rospy.Rate(5).sleep()
         
