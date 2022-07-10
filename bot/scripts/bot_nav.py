@@ -12,6 +12,7 @@
 # - Vision: Take a photo
 
 import rospy
+from std_msgs.msg import String
 import math
 
 import actionlib
@@ -25,15 +26,15 @@ start = 1
 
 LOCATIONS = {
     # "office": (..., ...),
-    "elevator": (..., ...),
-    "toilet": (..., ...),
-    "one": (..., ...),
-    "two": (..., ...),
-    "three": (..., ...),
-    "hall": (..., ...),
-    "cafeteria": (..., ...),    
-    
+    "elevator": (10, -1.3),
+    "toilet": (19, -3.2),
+    "one": (25.7, 6.15),
+    "two": (23, 8.43),
+    "three": (24.8, 11.9),
+    "hall": (-2, 1.2),
+    "cafeteria": (26.6, -1.63),    
 }
+    
 
 def cal_theta(x, y):
     return math.atan2(x, y)
@@ -46,9 +47,8 @@ def cal_location(x, y):
 
 class NavToPoint:
     def __init__(self):
-        rospy.on_shutdown(self.cleanup)
         
-        rospy.Subscribe("bot/nav", String, self.callback)
+        rospy.Subscriber("bot/nav", String, self.callback)
         self.pub = rospy.Publisher("bot/reached", String, queue_size = 10)
         
         # Convert location.
@@ -60,6 +60,7 @@ class NavToPoint:
         
 	    # Subscribe to the move_base action server
         self.move_base = actionlib.SimpleActionClient("move_base", MoveBaseAction)
+        rospy.on_shutdown(self.cleanup)
 
         rospy.loginfo("Waiting for move_base action server...")
 
@@ -94,11 +95,13 @@ class NavToPoint:
                 self.goal.target_pose.header.frame_id = 'map'
                 self.goal.target_pose.header.stamp = rospy.Time.now()
 
-                rospy.loginfo("Going to point A")
+                rospy.loginfo("Going to point "+ location)
                 rospy.sleep(2)
+                print(self.locations[location])
                 self.goal.target_pose.pose = self.locations[location]
                 self.move_base.send_goal(self.goal)
                 waiting = self.move_base.wait_for_result(rospy.Duration(300))
+                print(waiting)
                 if waiting == 1:
                     rospy.loginfo("Reached point A")
                     rospy.sleep(2)
@@ -107,6 +110,7 @@ class NavToPoint:
                     
                     # send back to main.
                     self.pub.publish(location)
+                    return
 
                 rospy.Rate(5).sleep()
         
@@ -115,10 +119,7 @@ class NavToPoint:
 
     def update_initial_pose(self, initial_pose):
         self.initial_pose = initial_pose
-        if original == 0:
-            self.origin = self.initial_pose.pose.pose
-            global original
-            original = 1
+        self.origin = self.initial_pose.pose.pose
 
     def cleanup(self):
         rospy.loginfo("Shutting down navigation	....")
@@ -129,5 +130,6 @@ if __name__=="__main__":
     try:
         NavToPoint()
         rospy.spin()
-    except:
+    except Exception as e:
+        print(e)
         pass
