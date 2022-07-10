@@ -22,7 +22,7 @@ class CustomNode:
         self.name = name
         rospy.init_node(name)  
         
-        self.pub = rospy.Publisher(topic, msg_type, queue_size = 10)       
+        self.pub = rospy.Publisher(topic, msg_type, queue_size = 1)       
     
     def main(self):
         while not rospy.is_shutdown():
@@ -34,6 +34,7 @@ class CustomNode:
     
     def google_rs(self):
         r = sr.Recognizer()
+        r.operation_timeout = 5
         
         with sr.Microphone() as source:
             print(">>> Say something!")
@@ -49,7 +50,8 @@ class CustomNode:
         except sr.RequestError as e:
             print("Could not request results from Google Speech Recognition service; {0}".format(e))        
 
-        return self.text
+        if self.text:
+            return str(self.text)
     
 
 if __name__ == '__main__':
