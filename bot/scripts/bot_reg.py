@@ -34,7 +34,7 @@ class CustomNode:
     
     def google_rs(self):
         r = sr.Recognizer()
-        r.operation_timeout = 5
+        r.operation_timeout = 5 # Fixed sr getting stuck on line 46.
         
         with sr.Microphone() as source:
             print(">>> Say something!")

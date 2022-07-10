@@ -25,8 +25,20 @@ TIMEOUT = 60 # seconds
 # speak
 # input topic: bot/speak
 
-# camera
+# camera - never use
 # input topic: bot/take_photo
+
+# detect chair
+# input topic: bot/start_object_dec
+# output topic: bot/found_object
+
+# detect human
+# input topic: bot/start_human_dec
+# output topic: bot/found_human
+
+# nav
+# input topic: bot/nav
+# output topic: bot/reached
 
 
 class CustomNode:
@@ -175,6 +187,7 @@ class CustomNode:
             # Dynamic user input
             self.is_listening = True
             
+            # Reached target.
             if self.is_reached:
                 self.is_listening = False
                 self.recognized = False
@@ -297,11 +310,11 @@ class CustomNode:
                 self.is_listening = True
 
         elif self.state == "FINDING-CHAIR":
-            print("fiding chair")
             self.is_listening = False
             rospy.sleep(1)
 
             if self.found_object:
+                rospy.loginfo("Found a chair.")
                 self.speak("You can sit in that chair while waiting for the appointment!")
                 
                 rospy.sleep(8)
@@ -411,13 +424,14 @@ class CustomNode:
         self.is_listening = False
     
     def speak(self, text):
+        # Will have to disable listening while speaking or the bot will hear itself.
         self.is_listening = False
         self.recognized = False
+        
         rospy.loginfo("Speaking " + text)
         self.speak_pub.publish(text)
 
 
 if __name__ == '__main__':
-    csNode = CustomNode()
-    
+    csNode = CustomNode()    
     rospy.spin()

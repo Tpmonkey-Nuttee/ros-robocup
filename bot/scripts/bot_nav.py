@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# NOTE: We did not use this file in the real demonstration.
+
 # This file was written by Tpmonkey (Nuttee)
 # to combine features and provide an easy + customizable node setup.
 
