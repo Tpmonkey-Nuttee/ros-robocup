@@ -8,7 +8,7 @@ These scripts are not finished because we only have one day to write everything.
 > **_NOTE:_**  All commands need to be run on jupiter robot.
 
 1. Make sure [ROS Package](https://github.com/robocupathomeedu/rc-home-edu-learn-ros) is installed.
-2. Create a package in `~/catkin_ws/src` by using 
+2. Go to `~/catkin_ws/src` and create new package using 
    ```bash
    catkin_create_pkg {pkg_name} std_msgs rospy roscpp
    ```
@@ -16,7 +16,7 @@ These scripts are not finished because we only have one day to write everything.
    ```bash
    mkdir scripts
    ```
-4. Run git clone. (Can be run in another dir)
+4. Run git clone.
    ```bash
    git clone https://github.com/Tpmonkey-Nuttee/ros-robocup.git
    ```
@@ -27,12 +27,11 @@ These scripts are not finished because we only have one day to write everything.
 6. Make sure you have a map file ready and config `bot_nav2.py` to add/edit locations. 
 7. Make sure files has execution permission.
    ```bash
-    chmod +x /scripts/*.py
+    chmod +x /scripts *.py
     ```
-8. Run all the commands down below in difference terminals. (Recommend tabs)
+8. Run all the commands down below in difference terminals. (Recommend using tabs)
 
     ```bash
-
     roscore
     roslaunch jupiterobot_bringup jupiterobot_bringup.launch
 
