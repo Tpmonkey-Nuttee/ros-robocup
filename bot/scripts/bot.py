@@ -35,11 +35,11 @@ class CustomNode:
         
         # Google Voice recognizer, Google TTS
         self.reg_sub = rospy.Subscriber("bot/voice_input", String, self.heard)
-        self.speak_pub = rospy.Publisher("bot/speak", String, queue_size = 10)
+        self.speak_pub = rospy.Publisher("bot/speak", String, queue_size = 1)
         
         # Navigation
         self.nav_sub = rospy.Subscriber("bot/reached", String, self.reached)
-        self.nav_pub = rospy.Publisher("bot/nav", String, queue_size = 10)
+        self.nav_pub = rospy.Publisher("bot/nav", String, queue_size = 1)
         
         # Human detection
         self.hum_sub = rospy.Subscriber("bot/found_human", String, self.found_hum)
@@ -83,13 +83,17 @@ class CustomNode:
             # At elevator, waiting...
             if self.is_reached:
                 self.speak("Waiting for human!")
+
+                rospy.sleep(4)
                 self.act_hum_dec()
                 self.state = "IDLE"
                 
             # Return back to elevator.
-            else:
+            elif self.going_to != "elevator":
                 self.speak("Im going to go to the elevator.")
-                self.reached = False
+                self.is_reached = False # TODO: 
+
+                rospy.sleep(4)
                 self.goto("elevator")
         
         # Idle at elevator.
@@ -97,13 +101,15 @@ class CustomNode:
             
             # Somebody came.
             if self.found_human:
-                self.speak("Welcome to the hopital!")
+                self.speak("Welcome to the hospital!")
                 
                 # TODO: move arm.
                 
                 rospy.sleep(5)
                 
                 self.speak("Where do you want to go?")
+
+                rospy.sleep(6)
                 
                 self.is_listening = True
                 self.start_time = time.time()
@@ -116,19 +122,20 @@ class CustomNode:
             if self.recognized:
                 self.recognized = False # Reset
                 
-                msg = self.message.replace("tree", "three") # Make it easier to type
-                
+                msg = self.message.replace("tree", "three").replace("pilot", "toilet") # Make it easier to type
+                self.start_time = time.time()
+
                 if msg in ["hello", "hey", "hi"]:
                     self.speak("Hello, Where do you want to go?")
                     
-                    rospy.sleep(2)
+                    rospy.sleep(4)
                 
                 elif msg in ["cafeteria", "hall", "toilet"]:
                     self.is_reached = False
                     
                     self.speak("So you want to go to " + msg)
                     
-                    rospy.sleep(3)
+                    rospy.sleep(5)
                     
                     self.speak("Please follow me!")  
                                       
@@ -152,14 +159,16 @@ class CustomNode:
                 else:
                     self.speak("I do not understand what you meant. Please say where you want to go!")
                     
-                    rospy.sleep(5)
+                    rospy.sleep(8)
+
+                self.is_listening = True
                     
                     
             # Didn't hear shit. :(
             elif rn - self.start_time > TIMEOUT:
                 self.speak("Nobody answered me. I am going to reset myself!")
                 
-                self.reset()
+                self.reset_state()
                 self.state = "NONE"
 
         elif self.state == "GUILDING":
@@ -202,7 +211,7 @@ class CustomNode:
                 msg = self.message.replace("tree", "three")
 
                 if "hall" in msg:
-                    self.nav_pub("stop")
+                    self.nav_pub.publish("stop")
                     self.is_reached = False
                     
                     self.speak("You changed your mind huh? Let's go to the hall then!")
@@ -210,9 +219,19 @@ class CustomNode:
                     rospy.sleep(6)
                     
                     self.goto("hall")
+
+                elif "cafe" in msg:
+                    self.nav_pub.publish("stop")
+                    self.is_reached = False
+
+                    self.speak("Ok, maybe you're hungry. Then follow me!")
+
+                    rospy.sleep(5)
+
+                    self.goto("cafeteria")
                 
-                elif "toilet" in msg:
-                    self.nav_pub("stop")
+                elif "toilet" in msg or "pilot" in msg:
+                    self.nav_pub.publish("stop")
                     self.is_reached = False
                     
                     self.speak("Maybe you're feeling it. Then follow me to the toilet!")
@@ -222,7 +241,7 @@ class CustomNode:
                     self.goto("toilet")
                 
                 elif "elevator" in msg:
-                    self.nav_pub("stop")
+                    self.nav_pub.publish("stop")
                     self.is_reached = False
                     
                     self.speak("Are you going to leave now? Ok then. Follow me!")
@@ -232,7 +251,7 @@ class CustomNode:
                     self.goto("elevator")
                 
                 elif "one" in msg:
-                    self.nav_pub("stop")
+                    self.nav_pub.publish("stop")
                     self.is_reached = False
                     
                     self.speak("You're changing to room one? Well okay.")
@@ -243,7 +262,7 @@ class CustomNode:
                     self.goto("one")
                     
                 elif "two" in msg:
-                    self.nav_pub("stop")
+                    self.nav_pub.publish("stop")
                     self.is_reached = False
                     
                     self.speak("You're changing to room two? The doctor is actually great!")
@@ -254,7 +273,7 @@ class CustomNode:
                     self.goto("two")
                 
                 elif "three" in msg:
-                    self.nav_pub("stop")
+                    self.nav_pub.publish("stop")
                     self.is_reached = False
                     
                     self.speak("You're changing to room three? Well good luck.")
@@ -263,10 +282,22 @@ class CustomNode:
                     
                     self.speak("Please follow me!")
                     self.goto("three")
-            
+                
+                elif "hey" in msg:
+                    self.speak("Debug mode activated")
+
+                    rospy.sleep(4)
+
+                    self.is_reached = True
+                    self.reached_location = "one"
+
+                self.is_listening = True
+
         elif self.state == "FINDING-CHAIR":
+            print("fiding chair")
             self.is_listening = False
-            
+            rospy.sleep(1)
+
             if self.found_object:
                 self.speak("You can sit in that chair while waiting for the appointment!")
                 
@@ -274,10 +305,10 @@ class CustomNode:
                 
             self.speak("Do you want me to stay here with you?")
                 
-            self.is_listening = True
-            self.recognized = False
+            rospy.sleep(4)
             
-            rospy.sleep(2)
+            self.recognized = False
+            self.is_listening = True
             
             self.start_time = time.time()
             self.state = "YES-OR-RESET"
@@ -288,7 +319,7 @@ class CustomNode:
             if rn - self.start_time > TIMEOUT:
                 self.speak("Welp, You said nothing. So good luck!")
                 
-                rospy.sleep(3)
+                rospy.sleep(5)
                 
                 self.reset_state()
                 self.state = "NONE"
@@ -301,9 +332,16 @@ class CustomNode:
                     self.speak("Ok, I will wait here for you.")
                     
                     rospy.sleep(20)
-                    
+
+                    self.is_listening = True
+                    self.recognized = False
+                    self.is_reached = False
+                    self.found_human = False
+
+                    self.act_hum_dec()
+
                     self.state = "WAIT-UNTIL-RETURN"
-                else:
+                elif msg.startswith("n"):
                     self.speak("Then I will go back to the elevator, Have a nice day!")
                 
                     rospy.sleep(5)
@@ -311,12 +349,8 @@ class CustomNode:
                     self.reset_state()
                     self.state = "NONE"
                     
+                
         elif self.state == "WAIT-UNTIL-RETURN":
-            self.is_listening = True
-            self.recognized = False
-            self.is_reached = False
-            
-            self.act_hum_dec()
             
             if self.found_human:
                 self.speak("Well, let's get going.")
@@ -364,14 +398,18 @@ class CustomNode:
     
     def heard(self, data):
         if not self.is_listening:
+            print("Ignoring input", data.data)
             return
         
-        self.message = data.data.lower()  
+        self.message = data.data.lower().replace("1", "one").replace("2", "two").replace("3", "three")  
         rospy.loginfo("Heard " + self.message)
         
         self.recognized = True     
+        self.is_listening = False
     
     def speak(self, text):
+        self.is_listening = False
+        self.recognized = False
         rospy.loginfo("Speaking " + text)
         self.speak_pub.publish(text)
 
