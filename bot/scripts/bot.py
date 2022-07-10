@@ -39,7 +39,7 @@ class CustomNode:
         
         # Navigation
         self.nav_sub = rospy.Subscriber("bot/reached", String, self.reached)
-        self.nav_pub = rospy.Publisher("bot/nav", String, queue_size = 1)
+        self.nav_pub = rospy.Publisher("bot/nav", String, queue_size = 2)
         
         # Human detection
         self.hum_sub = rospy.Subscriber("bot/found_human", String, self.found_hum)
@@ -284,7 +284,10 @@ class CustomNode:
                     self.goto("three")
                 
                 elif "hey" in msg:
+                    self.nav_pub.publish("stop")
+
                     self.speak("Debug mode activated")
+                    
 
                     rospy.sleep(4)
 
